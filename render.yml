@@ -1,0 +1,38 @@
+# render.yaml — Infrastructure as Code for Render
+services:
+  - type: web
+    name: production-langgraph-api
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: pip install uv && uv sync --frozen --no-dev
+    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: RATE_LIMIT
+        value: "20/minute"
+      - key: CACHE_TTL_SECONDS
+        value: "300"
+      - key: MAX_RETRIES
+        value: "3"
+      - key: PRIMARY_MODEL
+        value: gemini-3.5-flash
+      - key: FALLBACK_MODEL
+        value: gemini-3.5-flash  # Change to a different Gemini model for real fallback protection
+      - key: GEMINI_API_KEY
+        sync: false  # Set manually in Render dashboard. Never commit secrets
+      - key: LANGCHAIN_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: LANGCHAIN_TRACING_V2
+        value: "true"  # Read by LangSmith
+      - key: LANGCHAIN_TRACING
+        value: "true"  # Read by your settings.langchain_tracing field
+      - key: LANGCHAIN_PROJECT
+        value: production-api  # Change to your LangSmith project name
+    healthCheckPath: /health
+    autoDeploy: true
